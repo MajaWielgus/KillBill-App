@@ -1,41 +1,42 @@
 import React, { useEffect, useState } from 'react';
+// Importy do wykresu
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+// Rejestracja wykresu (wymagane przez bibliotekę)
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 function Dashboard({ token, onLogout }) {
   const [subs, setSubs] = useState([]);
   const [formData, setFormData] = useState({ name: '', price: '', category: 'Inne', date: '' });
   const [editingId, setEditingId] = useState(null);
+  
+  // NOWOŚĆ: Stan do zakładek (filtrowanie)
+  const [filterCategory, setFilterCategory] = useState('Wszystkie');
 
-  // POBIERANIE (z tokenem)
+  // 1. POBIERANIE DANYCH
   useEffect(() => {
     fetch('http://localhost:5000/api/subscriptions', {
-      method: 'GET',
-      headers: {
-        'auth-token': token 
-      }
+      headers: { 'auth-token': token }
     })
       .then(res => res.json())
       .then(data => {
-        // Jeśli token wygasł lub jest błąd, data może być komunikatem błędu
-        if (Array.isArray(data)) {
-            setSubs(data);
-        } else {
-            console.log("Błąd lub brak danych", data);
-            setSubs([]); // Pusta lista w razie błędu
-        }
+         if(Array.isArray(data)) setSubs(data);
+         else setSubs([]);
       })
       .catch(err => console.error(err));
   }, [token]);
 
+  // Logika formularza (bez zmian)
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   
   const startEditing = (sub) => {
     setEditingId(sub._id);
-    setFormData({ name: sub.name, price: sub.price, category: sub.category, date: sub.paymentDate ? sub.paymentDate.split('T')[0] : '' });
+    setFormData({ name: sub.name, price: sub.price, category: sub.category, date: sub.paymentDate.split('T')[0] });
   };
   
   const cancelEdit = () => { setEditingId(null); setFormData({ name: '', price: '', category: 'Inne', date: '' }); };
 
-  // DODAWANIE / EDYCJA (z tokenem)
   const handleSubmit = (e) => {
     e.preventDefault();
     const method = editingId ? 'PUT' : 'POST';
@@ -43,10 +44,7 @@ function Dashboard({ token, onLogout }) {
 
     fetch(url, {
       method: method,
-      headers: { 
-        'Content-Type': 'application/json',
-        'auth-token': token 
-      }, 
+      headers: { 'Content-Type': 'application/json', 'auth-token': token },
       body: JSON.stringify({
         name: formData.name,
         price: Number(formData.price),
@@ -64,64 +62,147 @@ function Dashboard({ token, onLogout }) {
     });
   };
 
-  // USUWANIE (z tokenem)
   const handleDelete = (id) => {
     fetch(`http://localhost:5000/api/subscriptions/${id}`, { 
-        method: 'DELETE',
-        headers: { 
-            'auth-token': token 
-        }
-    })
-      .then(() => setSubs(subs.filter(sub => sub._id !== id)));
+        method: 'DELETE', headers: { 'auth-token': token }
+    }).then(() => setSubs(subs.filter(sub => sub._id !== id)));
   };
 
+  // --- OBLICZENIA DO WYKRESU I STATYSTYK ---
   const totalCost = subs.reduce((sum, sub) => sum + sub.price, 0);
 
+  // Zliczamy ile wydajemy na każdą kategorię
+  const categories = ['Rozrywka', 'Praca', 'Dom', 'Inne'];
+  const categoryTotals = categories.map(cat => 
+    subs.filter(s => s.category === cat).reduce((sum, s) => sum + s.price, 0)
+  );
+
+  // Dane dla wykresu kołowego
+  const chartData = {
+    labels: categories,
+    datasets: [
+      {
+        data: categoryTotals,
+        backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'], // Kolory kawałków tortu
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // --- FILTROWANIE LISTY (ZAKŁADKI) ---
+  const filteredSubs = filterCategory === 'Wszystkie' 
+    ? subs 
+    : subs.filter(sub => sub.category === filterCategory);
+
+
+  // --- WIDOK (HTML + BOOTSTRAP) ---
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Twoje Subskrypcje 💰</h1>
-        <button onClick={onLogout} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>Wyloguj</button>
+    <div className="container mt-4">
+      
+      {/* NAGŁÓWEK */}
+      <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded">
+        <h2 className="m-0 text-primary">💰 Menedżer Subskrypcji</h2>
+        <button onClick={onLogout} className="btn btn-outline-danger">Wyloguj</button>
       </div>
 
-      <div style={{ background: '#007bff', color: 'white', padding: '20px', borderRadius: '10px', textAlign: 'center', marginBottom: '30px' }}>
-        <div>Miesięczne wydatki:</div>
-        <div style={{ fontSize: '2.5em', fontWeight: 'bold' }}>{totalCost} PLN</div>
-      </div>
-
-      <div style={{ background: editingId ? '#fff3cd' : '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-        <h3>{editingId ? 'Edytuj ✏️' : 'Dodaj nową:'}</h3>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
-          <input type="text" name="name" placeholder="Nazwa" value={formData.name} onChange={handleChange} required style={{ padding: '8px' }} />
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input type="number" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
-            <input type="date" name="date" value={formData.date} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
-          </div>
-          <select name="category" value={formData.category} onChange={handleChange} style={{ padding: '8px' }}>
-            <option value="Inne">Inne</option>
-            <option value="Rozrywka">Rozrywka</option>
-            <option value="Praca">Praca</option>
-            <option value="Dom">Dom</option>
-          </select>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" style={{ flex: 1, padding: '10px', background: editingId ? '#ffc107' : '#28a745', color: editingId ? 'black' : 'white', border: 'none', cursor: 'pointer' }}>{editingId ? 'Zapisz' : 'Dodaj'}</button>
-            {editingId && <button type="button" onClick={cancelEdit} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px' }}>Anuluj</button>}
-          </div>
-        </form>
-      </div>
-
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {subs.map(sub => (
-          <li key={sub._id} style={{ borderBottom: '1px solid #ddd', padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div><strong>{sub.name}</strong> ({sub.category})<br/><small style={{ color: 'blue' }}>📅 {sub.paymentDate ? new Date(sub.paymentDate).toLocaleDateString('pl-PL') : ''}</small></div>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <strong>{sub.price} PLN</strong>
-              <button onClick={() => startEditing(sub)} style={{ background: '#ffc107', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>✏️</button>
-              <button onClick={() => handleDelete(sub._id)} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>🗑️</button>
+      <div className="row">
+        {/* LEWA KOLUMNA: Statystyki i Wykres */}
+        <div className="col-md-4 mb-4">
+          <div className="card shadow-sm mb-4">
+            <div className="card-body text-center">
+              <h5 className="text-muted">Miesięczne wydatki</h5>
+              <h1 className="display-4 font-weight-bold text-success">{totalCost} PLN</h1>
             </div>
-          </li>
-        ))}
-      </ul>
+          </div>
+
+          {/* WYKRES - Pokazujemy tylko jak są jakieś dane */}
+          {subs.length > 0 && (
+            <div className="card shadow-sm p-3">
+              <h6 className="text-center mb-3">Struktura wydatków</h6>
+              <div style={{ maxHeight: '300px', display: 'flex', justifyContent: 'center' }}>
+                <Doughnut data={chartData} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* PRAWA KOLUMNA: Formularz i Lista */}
+        <div className="col-md-8">
+          
+          {/* FORMULARZ */}
+          <div className={`card shadow-sm mb-4 ${editingId ? 'border-warning' : ''}`}>
+            <div className="card-header bg-light">
+              {editingId ? '✏️ Edytuj subskrypcję' : '➕ Dodaj nową subskrypcję'}
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleSubmit} className="row g-3">
+                <div className="col-md-6">
+                  <input type="text" className="form-control" name="name" placeholder="Nazwa (np. Netflix)" value={formData.name} onChange={handleChange} required />
+                </div>
+                <div className="col-md-3">
+                  <input type="number" className="form-control" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required />
+                </div>
+                <div className="col-md-3">
+                  <select className="form-select" name="category" value={formData.category} onChange={handleChange}>
+                    <option value="Inne">Inne</option>
+                    <option value="Rozrywka">Rozrywka</option>
+                    <option value="Praca">Praca</option>
+                    <option value="Dom">Dom</option>
+                  </select>
+                </div>
+                <div className="col-md-12 d-flex gap-2">
+                  <input type="date" className="form-control" name="date" value={formData.date} onChange={handleChange} required />
+                  <button type="submit" className={`btn ${editingId ? 'btn-warning' : 'btn-success'} w-100`}>
+                    {editingId ? 'Zapisz zmiany' : 'Dodaj'}
+                  </button>
+                  {editingId && <button type="button" onClick={cancelEdit} className="btn btn-secondary">Anuluj</button>}
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* ZAKŁADKI (TABS) */}
+          <ul className="nav nav-tabs mb-3">
+            {['Wszystkie', 'Rozrywka', 'Praca', 'Dom', 'Inne'].map(cat => (
+              <li className="nav-item" key={cat}>
+                <button 
+                  className={`nav-link ${filterCategory === cat ? 'active fw-bold' : ''}`} 
+                  onClick={() => setFilterCategory(cat)}
+                >
+                  {cat}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* LISTA SUBSKRYPCJI */}
+          <div className="list-group shadow-sm">
+            {filteredSubs.length === 0 ? (
+              <div className="list-group-item text-center text-muted p-4">Brak subskrypcji w tej kategorii.</div>
+            ) : (
+              filteredSubs.map(sub => (
+                <div key={sub._id} className="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 className="mb-1">{sub.name}</h5>
+                    <small className="text-muted">
+                      📅 {sub.paymentDate ? new Date(sub.paymentDate).toLocaleDateString('pl-PL') : ''} 
+                      <span className="badge bg-secondary ms-2">{sub.category}</span>
+                    </small>
+                  </div>
+                  <div className="d-flex align-items-center gap-3">
+                    <span className="fs-5 fw-bold text-dark">{sub.price} PLN</span>
+                    <div>
+                      <button onClick={() => startEditing(sub)} className="btn btn-sm btn-outline-warning me-2">✏️</button>
+                      <button onClick={() => handleDelete(sub._id)} className="btn btn-sm btn-outline-danger">🗑️</button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }

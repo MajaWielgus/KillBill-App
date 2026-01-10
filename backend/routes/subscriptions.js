@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-//Metoda POST
+// Metoda POST
 router.post('/', async (req, res) => {
     // tworzy nowy obiekt na podstawie tego co przyszło od klienta
     const newSub = new Subscription({
@@ -37,11 +37,26 @@ router.post('/', async (req, res) => {
 // Metoda DELETE
 router.delete('/:id', async (req, res) => {
     try {
-        // Znajdź w bazie element o tym ID i go usuń
+        // Znajdzie w bazie element o tym ID i go usunie
         const removedSub = await Subscription.findByIdAndDelete(req.params.id);
         res.json(removedSub);
     } catch (err) {
         res.json({ message: err });
+    }
+});
+
+// Metoda PUT
+router.put('/:id', async (req, res) => {
+    try {
+        // Znajdzie po ID i go zaaktualizuje 
+        const updatedSub = await Subscription.findByIdAndUpdate(
+            req.params.id, 
+            req.body, 
+            { new: true }
+        );
+        res.json(updatedSub);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
 

@@ -6,9 +6,10 @@ function App() {
     name: '',
     price: '',
     category: 'Inne',
-    date: '' // tu będzie data wybrana w kalendarzu
+    date: ''
   });
 
+  // Pobieranie danych (GET)
   useEffect(() => {
     fetch('http://localhost:5000/api/subscriptions')
       .then(res => res.json())
@@ -16,21 +17,17 @@ function App() {
       .catch(err => console.error(err));
   }, []);
 
+  // Obsługa formularza
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Dodawanie (POST)
   const handleSubmit = (e) => {
     e.preventDefault();
-
     fetch('http://localhost:5000/api/subscriptions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: formData.name,
         price: Number(formData.price),
@@ -38,7 +35,7 @@ function App() {
         paymentDate: formData.date 
       }),
     })
-      .then(response => response.json())
+      .then(res => res.json())
       .then(newSub => {
         setSubs([...subs, newSub]);
         setFormData({ name: '', price: '', category: 'Inne', date: '' });
@@ -46,7 +43,21 @@ function App() {
       .catch(error => console.error('Błąd dodawania:', error));
   };
 
-  // pomocnicza funkcja do ładnego wyświetlania daty
+  // --- NOWOŚĆ: Funkcja Usuwania (DELETE) ---
+  const handleDelete = (id) => {
+    // 1. Wyślij żądanie do serwera, żeby usunął z bazy
+    fetch(`http://localhost:5000/api/subscriptions/${id}`, {
+      method: 'DELETE',
+    })
+    .then(() => {
+      // 2. Jeśli serwer potwierdził, usuń też z ekranu (bez odświeżania strony)
+      // Filtrujemy listę: zostaw tylko te elementy, które NIE mają tego ID
+      const newSubs = subs.filter(sub => sub._id !== id);
+      setSubs(newSubs);
+    })
+    .catch(err => console.error('Błąd usuwania:', err));
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('pl-PL');
@@ -56,62 +67,26 @@ function App() {
     <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Menedżer Subskrypcji 💰</h1>
 
-      {/* --- FORMULARZ --- */}
+      {/* Formularz */}
       <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
         <h3>Dodaj nową:</h3>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
-          
-          <input
-            type="text"
-            name="name"
-            placeholder="Nazwa (np. Netflix)"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            style={{ padding: '8px' }}
-          />
-
+          <input type="text" name="name" placeholder="Nazwa (np. Netflix)" value={formData.name} onChange={handleChange} required style={{ padding: '8px' }} />
           <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="number"
-              name="price"
-              placeholder="Cena"
-              value={formData.price}
-              onChange={handleChange}
-              required
-              style={{ padding: '8px', flex: 1 }}
-            />
-            
-            {/*Pole kalendarza */}
-            <input 
-              type="date" 
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-              style={{ padding: '8px', flex: 1 }}
-            />
+            <input type="number" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
+            <input type="date" name="date" value={formData.date} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
           </div>
-
-          <select 
-            name="category" 
-            value={formData.category} 
-            onChange={handleChange}
-            style={{ padding: '8px' }}
-          >
+          <select name="category" value={formData.category} onChange={handleChange} style={{ padding: '8px' }}>
             <option value="Inne">Inne</option>
             <option value="Rozrywka">Rozrywka</option>
             <option value="Praca">Praca</option>
             <option value="Dom">Dom</option>
           </select>
-
-          <button type="submit" style={{ padding: '10px', background: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>
-            Dodaj i Pamiętaj Datę 📅
-          </button>
+          <button type="submit" style={{ padding: '10px', background: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>Dodaj ➕</button>
         </form>
       </div>
 
-      {/* --- LISTA --- */}
+      {/* Lista */}
       <h3>Twoje wydatki:</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {subs.map(sub => (
@@ -119,11 +94,19 @@ function App() {
             <div>
               <strong>{sub.name}</strong> <span style={{fontSize: '0.8em', color: '#666'}}>({sub.category})</span>
               <br/>
-              {/* Wyświetlanie daty pod nazwą */}
-              <small style={{ color: 'blue' }}>📅 Płatność: {formatDate(sub.paymentDate)}</small>
+              <small style={{ color: 'blue' }}>📅 {formatDate(sub.paymentDate)}</small>
             </div>
-            <div style={{ fontWeight: 'bold', color: '#333' }}>
-              {sub.price} PLN
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span style={{ fontWeight: 'bold', color: '#333' }}>{sub.price} PLN</span>
+              
+              {/* --- NOWOŚĆ: Przycisk USUŃ --- */}
+              <button 
+                onClick={() => handleDelete(sub._id)}
+                style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Usuń 🗑️
+              </button>
             </div>
           </li>
         ))}

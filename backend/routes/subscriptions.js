@@ -34,4 +34,15 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Metoda DELETE
+router.delete('/:id', async (req, res) => {
+    try {
+        // Znajdź w bazie element o tym ID i go usuń
+        const removedSub = await Subscription.findByIdAndDelete(req.params.id);
+        res.json(removedSub);
+    } catch (err) {
+        res.json({ message: err });
+    }
+});
+
 module.exports = router;

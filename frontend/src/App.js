@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 function App() {
   const [subs, setSubs] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -14,23 +15,23 @@ function App() {
     fetch('http://localhost:5000/api/subscriptions')
       .then(res => res.json())
       .then(data => setSubs(data))
-      .catch(err => console.error(err));
+      .catch(err => console.error('Błąd pobierania:', err));
   }, []);
 
-  // Obsługa formularza
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   // Dodawanie (POST)
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
+
     fetch('http://localhost:5000/api/subscriptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: formData.name,
-        price: Number(formData.price),
+        price: Number(formData.price), 
         category: formData.category,
         paymentDate: formData.date 
       }),
@@ -43,15 +44,12 @@ function App() {
       .catch(error => console.error('Błąd dodawania:', error));
   };
 
-  // --- NOWOŚĆ: Funkcja Usuwania (DELETE) ---
+  // Funkcja usuwania (DELETE)
   const handleDelete = (id) => {
-    // 1. Wyślij żądanie do serwera, żeby usunął z bazy
     fetch(`http://localhost:5000/api/subscriptions/${id}`, {
       method: 'DELETE',
     })
     .then(() => {
-      // 2. Jeśli serwer potwierdził, usuń też z ekranu (bez odświeżania strony)
-      // Filtrujemy listę: zostaw tylko te elementy, które NIE mają tego ID
       const newSubs = subs.filter(sub => sub._id !== id);
       setSubs(newSubs);
     })
@@ -63,30 +61,51 @@ function App() {
     return new Date(dateString).toLocaleDateString('pl-PL');
   };
 
+  // LICZNIK: Sumujemy ceny wszystkich subskrypcji
+  const totalCost = subs.reduce((suma, sub) => suma + sub.price, 0);
+
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Menedżer Subskrypcji 💰</h1>
+      <h1 style={{textAlign: 'center'}}>Menedżer Subskrypcji 💰</h1>
 
-      {/* Formularz */}
+      {/* --- OKIENKO Z SUMĄ --- */}
+      <div style={{ 
+        background: '#007bff', 
+        color: 'white', 
+        padding: '20px', 
+        borderRadius: '10px', 
+        textAlign: 'center', 
+        marginBottom: '30px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ fontSize: '0.9em', opacity: 0.9 }}>Miesięczne wydatki:</div>
+        <div style={{ fontSize: '2.5em', fontWeight: 'bold' }}>{totalCost} PLN</div>
+      </div>
+
+      {/* --- FORMULARZ --- */}
       <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
         <h3>Dodaj nową:</h3>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+          
           <input type="text" name="name" placeholder="Nazwa (np. Netflix)" value={formData.name} onChange={handleChange} required style={{ padding: '8px' }} />
+          
           <div style={{ display: 'flex', gap: '10px' }}>
             <input type="number" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
             <input type="date" name="date" value={formData.date} onChange={handleChange} required style={{ padding: '8px', flex: 1 }} />
           </div>
+
           <select name="category" value={formData.category} onChange={handleChange} style={{ padding: '8px' }}>
             <option value="Inne">Inne</option>
             <option value="Rozrywka">Rozrywka</option>
             <option value="Praca">Praca</option>
             <option value="Dom">Dom</option>
           </select>
+
           <button type="submit" style={{ padding: '10px', background: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>Dodaj ➕</button>
         </form>
       </div>
 
-      {/* Lista */}
+      {/* --- LISTA --- */}
       <h3>Twoje wydatki:</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {subs.map(sub => (
@@ -99,8 +118,6 @@ function App() {
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <span style={{ fontWeight: 'bold', color: '#333' }}>{sub.price} PLN</span>
-              
-              {/* --- NOWOŚĆ: Przycisk USUŃ --- */}
               <button 
                 onClick={() => handleDelete(sub._id)}
                 style={{ background: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}

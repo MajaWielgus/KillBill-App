@@ -1,43 +1,46 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const Subscription = require('../models/Subscription');
+const verify = require('./verifyToken'); // Importujemy naszego ochroniarza
 
-// Metoda GET
-router.get('/', async (req, res) => {
+// POBIERANIE (Tylko subskrypcje zalogowanego użytkownika)
+router.get('/', verify, async (req, res) => {
     try {
-        // znajdzie wszystko w bazie
-        const subs = await Subscription.find(); 
-        // wysyla znalezione dane do Reacta jako JSON
+        // Szukamy w bazie subskrypcji, gdzie userId == ID zalogowanego
+        const subs = await Subscription.find({ userId: req.user._id });
         res.json(subs);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.json({ message: err });
     }
 });
 
-// Metoda POST
-router.post('/', async (req, res) => {
-    // tworzy nowy obiekt na podstawie tego co przyszło od klienta
-    const newSub = new Subscription({
+
+// DODAWANIE
+router.post('/', verify, async (req, res) => {
+    // podgląd w terminalu: czy serwer widzi ID użytkownika
+    console.log("Próba dodania subskrypcji dla User ID:", req.user._id);
+
+    const subscription = new Subscription({
         name: req.body.name,
         price: req.body.price,
+        category: req.body.category,
         paymentDate: req.body.paymentDate,
-        category: req.body.category
+        userId: req.user._id // tu przypisujemy właściciela
     });
 
     try {
-        // proba zapisu w bazie
-        const savedSub = await newSub.save();
-        // odsyla potwierdzenie i zapisany obiekt
-        res.status(201).json(savedSub);
+        const savedSub = await subscription.save();
+        console.log("Sukces! Zapisano w bazie:", savedSub);
+        res.json(savedSub);
     } catch (err) {
+        console.error("Błąd zapisu do bazy:", err); 
         res.status(400).json({ message: err.message });
     }
 });
 
-// Metoda DELETE
-router.delete('/:id', async (req, res) => {
+
+// USUWANIE (Musi być zweryfikowany)
+router.delete('/:id', verify, async (req, res) => {
     try {
-        // Znajdzie w bazie element o tym ID i go usunie
         const removedSub = await Subscription.findByIdAndDelete(req.params.id);
         res.json(removedSub);
     } catch (err) {
@@ -45,10 +48,9 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Metoda PUT
-router.put('/:id', async (req, res) => {
+// EDYCJA (Musi być zweryfikowany)
+router.put('/:id', verify, async (req, res) => {
     try {
-        // Znajdzie po ID i go zaaktualizuje 
         const updatedSub = await Subscription.findByIdAndUpdate(
             req.params.id, 
             req.body, 

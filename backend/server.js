@@ -3,30 +3,29 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-// Import tras 
-const subscriptionsRoutes = require('./routes/subscriptions');
-
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 //do polaczenia z react
 app.use(cors());
 app.use(express.json());
 
-// podlaczenie tras
-app.use('/api/subscriptions', subscriptionsRoutes);
-
 // Polaczenie z baza danych MongoDB
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Polaczono z baza danych MongoDB'))
-    .catch((err) => console.error('Blad polaczenia z baza:', err));
+  .then(() => console.log('Połączono z bazą danych MongoDB'))
+  .catch((err) => console.error('Błąd połączenia z MongoDB:', err));
 
-// Testowy route
-app.get('/', (req, res) => {
-    res.send('Serwer dziala i API jest gotowe!');
-});
+
+// Import tras
+const subscriptionsRouter = require('./routes/subscriptions');
+app.use('/api/subscriptions', subscriptionsRouter);
+
+// Trasa do Logowania/Rejestracji
+const authRouter = require('./routes/auth');
+app.use('/api/auth', authRouter); // Będzie dostępne pod /api/auth/register
 
 // Start serwera
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Serwer nasluchuje na porcie: ${PORT}`);
+  console.log(`Serwer nasluchuje na porcie: ${PORT}`);
 });
+

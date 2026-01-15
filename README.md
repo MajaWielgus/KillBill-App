@@ -70,22 +70,27 @@ Przejdź do folderu backend i zainstaluj biblioteki:
 ```bash
 cd backend
 npm install
+```
 
 Utwórz plik .env w folderze backend i uzupełnij go o własne dane konfiguracyjne:
+```
 MONGO_URI=twoj_link_do_bazy_danych
 JWT_SECRET=twoj_tajny_klucz
 PORT=5000
 
+
 npm start
+```
 
 ### 3. Konfiguracja (Frontend)
 
 Przejdź do folderu frontend:
 
+```
 cd frontend
 npm install
 npm start
-
+```
 
 ## 📁 Struktura projektu
 

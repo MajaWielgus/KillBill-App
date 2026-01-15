@@ -59,15 +59,16 @@ Aby uruchomić projekt lokalnie, wykonaj poniższe kroki:
 
 ### 1. Sklonuj repozytorium
 
-```bash
+```
 git clone https://github.com/MajaWielgus/KillBill-App.git
 cd killbill-app
+```
 
 ### 2. Konfiguracja serwera (Backend)
 
 Przejdź do folderu backend i zainstaluj biblioteki:
 
-```bash
+```
 cd backend
 npm install
 ```
@@ -77,7 +78,6 @@ Utwórz plik .env w folderze backend i uzupełnij go o własne dane konfiguracyj
 MONGO_URI=twoj_link_do_bazy_danych
 JWT_SECRET=twoj_tajny_klucz
 PORT=5000
-
 
 npm start
 ```
@@ -94,6 +94,7 @@ npm start
 
 ## 📁 Struktura projektu
 
+```text
 KILLBILL-APP
 ├── backend/
 │   ├── models/
@@ -106,6 +107,7 @@ KILLBILL-APP
 │       ├── App.js
 │       └── index.js
 └── README.md
+```
 
 
 ## 👩‍💻 Autorzy

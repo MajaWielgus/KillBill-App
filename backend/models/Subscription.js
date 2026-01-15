@@ -25,6 +25,12 @@ const subscriptionSchema = new mongoose.Schema({
   userId: {
     type: String,
     required: true
+  },
+
+  frequency: { 
+    type: String, 
+    enum: ['monthly', 'yearly'], // Może być tylko 'monthly' (miesięczna) lub 'yearly' (roczna)
+    default: 'monthly' // Domyślnie miesięczna, żeby stare dane się nie zepsuły
   }
 });
 

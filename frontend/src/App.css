@@ -1,38 +1,400 @@
-.App {
-  text-align: center;
-}
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Główny kontener układa Sidebar i treść obok siebie */
+.app-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Pasek boczny  */
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* Jasne tło domyślnie */
+  border-right: 1px solid #dee2e6;
+}
+
+/* Główna treść po prawej */
+.main-content {
+  flex: 1; /* Zajmuje resztę miejsca */
+  padding: 20px;
+  background-color: #fff; /* Białe tło domyślnie */
+  min-height: 100vh;
+}
+
+/* TRYB CIEMNY */
+
+.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+/* Naprawa tła głównego kontenera w trybie ciemnym */
+.dark-mode .main-content {
+  background-color: #121212 !important;
+  color: #e0e0e0;
+}
+
+
+/* Karty i kontenery */
+.dark-mode .card,
+.dark-mode .bg-white, 
+.dark-mode .list-group-item {
+  background-color: #1e1e1e !important;
+  border-color: #333 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .card-header {
+  background-color: #252525 !important;
+  border-bottom: 1px solid #333;
+  color: #fff !important;
+}
+
+/* Teksty (zamiana ciemnych na jasne) */
+.dark-mode .text-dark,
+.dark-mode .text-muted {
+  color: #b0b0b0 !important;
+}
+
+/* Formularze  */
+.dark-mode input,
+.dark-mode select,
+.dark-mode .form-control,
+.dark-mode .form-select {
+  background-color: #2b2b2b !important;
+  color: #ffffff !important;
+  border: 1px solid #555 !important;
+}
+
+.dark-mode input::placeholder {
+  color: #bbbbbb !important;
+}
+
+/* Ikonka kalendarza na biało */
+.dark-mode input[type="date"] {
+  color-scheme: dark;
+}
+
+.dark-mode .badge.bg-info {
+    background-color: #08618d !important; /* Ciemniejszy, głęboki niebieski */
+    color: #ffffff !important;           /* Wyraźny biały tekst */
+    border: 1px solid #0a7eb5;           /* Delikatna ramka dla lepszej widoczności */
+}
+
+/* Opcje w liście rozwijanej */
+.dark-mode select option {
+  background-color: #2b2b2b;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+/* SIDEBAR W TRYBIE CIEMNYM --- */
+
+.dark-mode .sidebar {
+  background-color: #1a1a1a;
+  border-right: 1px solid #333;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Tytuł w Sidebarze */
+.dark-mode .sidebar h4 {
+  color: #fff !important;
+}
+
+/* Linki w menu */
+.dark-mode .sidebar .nav-link {
+  color: #bbbbbb !important;
+}
+
+/* Aktywny link i najechanie myszką */
+.dark-mode .sidebar .nav-link.active,
+.dark-mode .sidebar .nav-link:hover {
+  color: #ffffff !important;
+  background-color: #0d6efd; /* Niebieski Bootstrapa */
+}
+
+/* Przycisk przełączania motywu */
+.dark-mode .sidebar .btn-outline-secondary {
+  color: #e0e0e0 !important;
+  border-color: #666 !important;
+}
+
+.dark-mode .sidebar .btn-outline-secondary:hover {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+/*LANDING PAGE */
+
+/* 1. Tło z gradientem  */
+.landing-bg {
+  background: radial-gradient(circle at 50% 0%, rgba(13, 110, 253, 0.1) 0%, transparent 70%),
+              radial-gradient(circle at 100% 0%, rgba(220, 53, 69, 0.05) 0%, transparent 50%),
+              #ffffff;
+}
+.dark-mode .landing-bg {
+  background: radial-gradient(circle at 50% 0%, rgba(13, 110, 253, 0.15) 0%, transparent 70%),
+              #121212;
+}
+
+/* 2. Tekst Gradientowy*/
+.text-gradient {
+  background: linear-gradient(90deg, #0d6efd 0%, #6610f2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+/* 3. Karty Funkcji z efektem Hover */
+.feature-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.05);
+  background: white;
+  height: 100%;
+}
+.feature-card:hover {
+  transform: translateY(-10px); /* Unosi się do góry */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1); /* Rzuca cień */
+}
+.dark-mode .feature-card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+}
+
+/* 4. Efekt "Mockup" (Udawany ekran aplikacji w tle) */
+.hero-mockup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.15); /* Duży cień */
+  border: 1px solid rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+  transform: perspective(1000px) rotateX(2deg) translateY(20px); /* Efekt 3D */
+  max-width: 900px;
+  margin: 0 auto;
+}
+.dark-mode .hero-mockup {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+}
+
+/* 5. Ikony w kółkach */
+.icon-square {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-size: 1.8rem;
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+  margin-bottom: 20px;
+}
+
+/* STRONA LOGOWANIA */
+
+/* Kontener centrujący na pełny ekran z tłem z Landing Page */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  /* Używamy tego samego tła co na Landing Page*/
+  background: radial-gradient(circle at 50% 0%, rgba(13, 110, 253, 0.1) 0%, transparent 70%),
+              radial-gradient(circle at 100% 100%, rgba(220, 53, 69, 0.05) 0%, transparent 50%),
+              #f8f9fa; /* Jasnoszare tło jako baza */
+}
+
+/* Tło w trybie ciemnym */
+.dark-mode .login-container {
+  background: radial-gradient(circle at 50% 0%, rgba(13, 110, 253, 0.2) 0%, transparent 70%),
+              #121212; /* Ciemne tło */
+}
+
+/* Karta Logowania */
+.login-card {
+  width: 100%;
+  max-width: 450px; 
+  border: none;
+  border-radius: 20px; /* Mocno zaokrąglone rogi */
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1); /* Głęboki, miękki cień */
+  overflow: hidden; /* Żeby nic nie wystawało poza zaokrąglenia */
+}
+
+/* W trybie ciemnym karta musi mieć odpowiedni kolor i cień */
+.dark-mode .login-card {
+    background-color: #1e1e1e;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+/* FLOATING LABELS (DARK MODE) */
+.dark-mode .form-floating > label {
+    color: #aaa !important;
+    transition: all 0.2s ease-in-out;
+}
+
+.dark-mode .form-floating > .form-control:focus ~ label,
+.dark-mode .form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #0d6efd !important; 
+    /* tło musi być identyczne jak tło pola */
+    background-color: #2b2b2b !important; 
+    padding: 0 8px !important;
+    /* Przesuwamy etykietę lekko do góry, zeby nie byla na linii */
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem) !important;
+    opacity: 1 !important;
+    height: auto !important;
+}
+
+/* KALENDARZ */
+
+/* 1. główne kontenery */
+.calendar-glass-card, 
+.details-glass-card {
+    border-radius: 28px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: #ffffff; /* Jasne tło domyślnie */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Tryb ciemny dla kart */
+.dark-mode .calendar-glass-card, 
+.dark-mode .details-glass-card {
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 2. STYLIZACJA BIBLIOTEKI REACT-CALENDAR */
+.react-calendar {
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    font-family: inherit !important;
+}
+
+/* Kolory tekstów w trybie jasnym */
+.react-calendar__navigation button,
+.react-calendar__month-view__days__day {
+    color: #333 !important;
+}
+
+/* Kolory tekstów w trybie ciemnym */
+.dark-mode .react-calendar__navigation button,
+.dark-mode .react-calendar__month-view__days__day {
+    color: #ffffff !important;
+}
+
+/* Dni tygodnia */
+.react-calendar__month-view__weekdays__weekday {
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding-bottom: 15px;
+    color: #0d6efd !important; 
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none !important;
+}
+
+/* 3. KAFELKI DNI */
+.react-calendar__tile {
+    height: 75px !important;
+    border-radius: 18px !important;
+    margin: 3px 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Efekt najechania */
+.react-calendar__tile:enabled:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    transform: scale(1.05);
+}
+
+/* Wybrany dzień  */
+.react-calendar__tile--active {
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%) !important;
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
+}
+
+.react-calendar__tile--active abbr {
+    color: white !important;
+}
+
+/* Dzisiejszy dzień */
+.react-calendar__tile--now {
+    background: rgba(13, 110, 253, 0.05) !important;
+    border: 2px solid #0d6efd !important;
+}
+
+/* Dni z innego miesiąca */
+.react-calendar__month-view__days__day--neighboringMonth {
+    opacity: 0.3;
+}
+
+/* 4. WSKAŹNIK PŁATNOŚCI  */
+.payment-dot {
+    width: 18px;
+    height: 4px;
+    background-color: #ff4757 !important;
+    border-radius: 10px;
+    margin-top: 6px;
+    box-shadow: 0 2px 5px rgba(255, 71, 87, 0.3);
+}
+
+/* 5. LISTA WYDARZEŃ  */
+.sub-item-glass-card {
+    background-color: #f8f9fa; 
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Tryb ciemny dla listy */
+.dark-mode .sub-item-glass-card {
+    background-color: #252525 !important;
+    border: 1px solid #333 !important;
+    color: white;
+}
+
+.sub-item-glass-card:hover {
+    transform: translateX(8px);
+    background-color: #ffffff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode .sub-item-glass-card:hover {
+    background-color: #2b2b2b !important;
+}
+
+/* 6. DODATKI  */
+.category-icon-bg {
+    width: 44px;
+    height: 44px;
+    background: rgba(13, 110, 253, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
 }

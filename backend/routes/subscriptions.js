@@ -2,16 +2,20 @@ const router = require('express').Router();
 const Subscription = require('../models/Subscription');
 const verify = require('./verifyToken'); // Importujemy naszego ochroniarza
 
+
+
 // POBIERANIE (Tylko subskrypcje zalogowanego użytkownika)
 router.get('/', verify, async (req, res) => {
     try {
         // Szukamy w bazie subskrypcji, gdzie userId == ID zalogowanego
-        const subs = await Subscription.find({ userId: req.user._id });
+        const subs = await Subscription.find({ userId: req.user._id});
         res.json(subs);
     } catch (err) {
         res.json({ message: err });
     }
 });
+
+
 
 
 // DODAWANIE
@@ -24,7 +28,8 @@ router.post('/', verify, async (req, res) => {
         price: req.body.price,
         category: req.body.category,
         paymentDate: req.body.paymentDate,
-        userId: req.user._id // tu przypisujemy właściciela
+        userId: req.user._id, // tu przypisujemy właściciela
+        frequency: req.body.frequency
     });
 
     try {

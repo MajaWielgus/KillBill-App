@@ -8,11 +8,14 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 function Dashboard({ token, onLogout }) {
   const [subs, setSubs] = useState([]);
-  const [formData, setFormData] = useState({ name: '', price: '', category: 'Inne', date: '' });
+  const [formData, setFormData] = useState({ name: '', price: '', category: 'Inne', date: '', frequency: 'monthly' });
   const [editingId, setEditingId] = useState(null);
   
-  // NOWOŚĆ: Stan do zakładek (filtrowanie)
+  // Stan do zakładek (filtrowanie)
   const [filterCategory, setFilterCategory] = useState('Wszystkie');
+
+  // Stan sortowania (domyślnie: najbliższa płatność)
+  const [sortType, setSortType] = useState('date');
 
   // 1. POBIERANIE DANYCH
   useEffect(() => {
@@ -27,15 +30,51 @@ function Dashboard({ token, onLogout }) {
       .catch(err => console.error(err));
   }, [token]);
 
-  // Logika formularza (bez zmian)
+  // FUNKCJA OBLICZAJĄCA DNI (ROZRÓŻNIA ROCZNE I MIESIĘCZNE) ---
+  const getDaysLeft = (sub) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Zerujemy godziny
+
+    const paymentDateOriginal = new Date(sub.paymentDate);
+    let nextPayment;
+
+    // Logika dla rocznych
+    if (sub.frequency === 'yearly') {
+        nextPayment = new Date(today.getFullYear(), paymentDateOriginal.getMonth(), paymentDateOriginal.getDate());
+        // Jeśli data w tym roku już minęła, płatność jest w przyszłym roku
+        if (nextPayment < today) {
+            nextPayment.setFullYear(nextPayment.getFullYear() + 1);
+        }
+    } 
+    // Logika dla miesiecznych
+    else {
+        const dayOfMonth = paymentDateOriginal.getDate();
+        nextPayment = new Date(today.getFullYear(), today.getMonth(), dayOfMonth);
+        if (nextPayment < today) {
+            nextPayment.setMonth(nextPayment.getMonth() + 1);
+        }
+    }
+
+    const diffTime = nextPayment - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Filtrujemy (przekazujemy całe sub, a nie tylko datę)
+  const upcomingPayments = subs
+    .filter(sub => getDaysLeft(sub) <= 7)
+    .sort((a, b) => getDaysLeft(a) - getDaysLeft(b));
+
+  // -------------------------------------------------------
+
+  // Logika formularza 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   
   const startEditing = (sub) => {
     setEditingId(sub._id);
-    setFormData({ name: sub.name, price: sub.price, category: sub.category, date: sub.paymentDate.split('T')[0] });
+    setFormData({ name: sub.name, price: sub.price, category: sub.category, date: sub.paymentDate.split('T')[0], frequency: sub.frequency || 'monthly' });
   };
   
-  const cancelEdit = () => { setEditingId(null); setFormData({ name: '', price: '', category: 'Inne', date: '' }); };
+  const cancelEdit = () => { setEditingId(null); setFormData({ name: '', price: '', category: 'Inne', date: '', frequency: 'monthly' }); };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -49,7 +88,8 @@ function Dashboard({ token, onLogout }) {
         name: formData.name,
         price: Number(formData.price),
         category: formData.category,
-        paymentDate: formData.date
+        paymentDate: formData.date,
+        frequency: formData.frequency
       }),
     }).then(res => res.json()).then(data => {
       if (editingId) {
@@ -68,13 +108,20 @@ function Dashboard({ token, onLogout }) {
     }).then(() => setSubs(subs.filter(sub => sub._id !== id)));
   };
 
-  // --- OBLICZENIA DO WYKRESU I STATYSTYK ---
-  const totalCost = subs.reduce((sum, sub) => sum + sub.price, 0);
+  // ovliczenia dla wykresu i statystyk. Jeśli roczna, to dzielimy cenę przez 12
+  const totalCost = subs.reduce((sum, sub) => {
+      if (sub.frequency === 'yearly') return sum + (sub.price / 12);
+      return sum + sub.price;
+  }, 0);
+  
 
   // Zliczamy ile wydajemy na każdą kategorię
   const categories = ['Rozrywka', 'Praca', 'Dom', 'Inne'];
   const categoryTotals = categories.map(cat => 
-    subs.filter(s => s.category === cat).reduce((sum, s) => sum + s.price, 0)
+    subs.filter(s => s.category === cat).reduce((sum, s) => {
+        if (s.frequency === 'yearly') return sum + (s.price / 12);
+        return sum + s.price;
+    }, 0)
   );
 
   // Dane dla wykresu kołowego
@@ -89,29 +136,66 @@ function Dashboard({ token, onLogout }) {
     ],
   };
 
-  // --- FILTROWANIE LISTY (ZAKŁADKI) ---
-  const filteredSubs = filterCategory === 'Wszystkie' 
-    ? subs 
-    : subs.filter(sub => sub.category === filterCategory);
+
+
+  
+ // SORTOWANIE I FILTROWANIE
+  const getSortedSubs = () => {
+    // Najpierw filtrujemy po kategorii
+    let processedSubs = filterCategory === 'Wszystkie' 
+      ? subs 
+      : subs.filter(sub => sub.category === filterCategory);
+
+    // Teraz sortujemy to, co zostało
+    processedSubs.sort((a, b) => {
+      switch (sortType) {
+        case 'priceDesc': // Najdroższe na górze
+          return b.price - a.price;
+        case 'priceAsc': // Najtańsze na górze
+          return a.price - b.price;
+        case 'alpha': // Alfabetycznie A-Z
+          return a.name.localeCompare(b.name);
+        case 'date': // Najbliższa płatność, ustawiona domyslnie
+        default:
+          return getDaysLeft(a) - getDaysLeft(b);
+      }
+    });
+
+    return processedSubs;
+  };
+
+  const filteredSubs = getSortedSubs();
 
 
   // --- WIDOK (HTML + BOOTSTRAP) ---
   return (
     <div className="container mt-4">
       
-      {/* NAGŁÓWEK */}
-      <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded">
-        <h2 className="m-0 text-primary">💰 Menedżer Subskrypcji</h2>
-        <button onClick={onLogout} className="btn btn-outline-danger">Wyloguj</button>
-      </div>
+      
+
+      {/* : ŻÓŁTY ALARM O PŁATNOŚCIACH --- */}
+      {upcomingPayments.length > 0 && (
+        <div className="alert alert-warning shadow-sm mb-4 border-warning">
+          <h5 className="alert-heading fw-bold">⚠️ Nadchodzące płatności (najbliższe 7 dni):</h5>
+          <ul className="mb-0 list-unstyled mt-2">
+            {upcomingPayments.map(sub => (
+              <li key={sub._id} className="mb-2">
+                👉 <strong>{sub.name}</strong>: 
+                <span className="fw-bold text-danger mx-2">{Number(sub.price).toFixed(2)} PLN</span> (za {getDaysLeft(sub)} dni)
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
 
       <div className="row">
-        {/* LEWA KOLUMNA: Statystyki i Wykres */}
+        {/*lewa kolumna - Statystyki i wykres */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm mb-4">
             <div className="card-body text-center">
               <h5 className="text-muted">Miesięczne wydatki</h5>
-              <h1 className="display-4 font-weight-bold text-success">{totalCost} PLN</h1>
+              <h1 className="display-4 font-weight-bold text-success">{Number(totalCost).toFixed(2)} PLN</h1>
             </div>
           </div>
 
@@ -120,13 +204,13 @@ function Dashboard({ token, onLogout }) {
             <div className="card shadow-sm p-3">
               <h6 className="text-center mb-3">Struktura wydatków</h6>
               <div style={{ maxHeight: '300px', display: 'flex', justifyContent: 'center' }}>
-                <Doughnut data={chartData} />
+                <Doughnut data={chartData}  />
               </div>
             </div>
           )}
         </div>
 
-        {/* PRAWA KOLUMNA: Formularz i Lista */}
+        {/* PRAWA KOLUMNA: formularz i lista */}
         <div className="col-md-8">
           
           {/* FORMULARZ */}
@@ -140,8 +224,18 @@ function Dashboard({ token, onLogout }) {
                   <input type="text" className="form-control" name="name" placeholder="Nazwa (np. Netflix)" value={formData.name} onChange={handleChange} required />
                 </div>
                 <div className="col-md-3">
-                  <input type="number" className="form-control" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required />
+                  <input type="number" className="form-control" name="price" placeholder="Cena" value={formData.price} onChange={handleChange} required min='0' step="0.01" />
                 </div>
+                
+                {/* MIESIĘCZNIE / ROCZNIE */}
+                <div className="col-md-3">
+                   <select className="form-select" name="frequency" value={formData.frequency} onChange={handleChange}>
+                      <option value="monthly">Co miesiąc</option>
+                      <option value="yearly">Raz w roku</option>
+                   </select>
+                </div>
+                
+                {/* kategoria */}
                 <div className="col-md-3">
                   <select className="form-select" name="category" value={formData.category} onChange={handleChange}>
                     <option value="Inne">Inne</option>
@@ -161,41 +255,84 @@ function Dashboard({ token, onLogout }) {
             </div>
           </div>
 
-          {/* ZAKŁADKI (TABS) */}
-          <ul className="nav nav-tabs mb-3">
-            {['Wszystkie', 'Rozrywka', 'Praca', 'Dom', 'Inne'].map(cat => (
-              <li className="nav-item" key={cat}>
-                <button 
-                  className={`nav-link ${filterCategory === cat ? 'active fw-bold' : ''}`} 
-                  onClick={() => setFilterCategory(cat)}
-                >
-                  {cat}
-                </button>
-              </li>
-            ))}
-          </ul>
+         {/* PASEK NARZĘDZI: ZAKŁADKI + SORTOWANIE*/}
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            
+            {/* Zakładki Kategorii  */}
+            <ul className="nav nav-pills">
+              {['Wszystkie', 'Rozrywka', 'Praca', 'Dom', 'Inne'].map(cat => (
+                <li className="nav-item" key={cat}>
+                  <button 
+                    className={`nav-link btn-sm ${filterCategory === cat ? 'active fw-bold' : ''}`} 
+                    onClick={() => setFilterCategory(cat)}
+                    style={{cursor: 'pointer'}}
+                  >
+                    {cat}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* Wybór Sortowania (po prawej) */}
+            <div className="d-flex align-items-center">
+              <span className="me-2 small text-muted">Sortuj:</span>
+              <select 
+                className="form-select form-select-sm" 
+                style={{width: 'auto', cursor: 'pointer'}}
+                value={sortType}
+                onChange={(e) => setSortType(e.target.value)}
+              >
+                <option value="date">📅 Najbliższe</option>
+                <option value="priceDesc">💰 Najdroższe</option>
+                <option value="priceAsc">💸 Najtańsze</option>
+                <option value="alpha">🔤 Alfabetycznie</option>
+              </select>
+            </div>
+
+          </div>
 
           {/* LISTA SUBSKRYPCJI */}
           <div className="list-group shadow-sm">
             {filteredSubs.length === 0 ? (
-              <div className="list-group-item text-center text-muted p-4">Brak subskrypcji w tej kategorii.</div>
+              <div className="list-group-item text-center text-muted p-4">
+                Brak subskrypcji w tej kategorii.
+              </div>
             ) : (
               filteredSubs.map(sub => (
                 <div key={sub._id} className="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="mb-1">{sub.name}</h5>
-                    <small className="text-muted">
-                      📅 {sub.paymentDate ? new Date(sub.paymentDate).toLocaleDateString('pl-PL') : ''} 
-                      <span className="badge bg-secondary ms-2">{sub.category}</span>
-                    </small>
-                  </div>
+                  
+                  {/* LEWA STRONA: Nazwa, data */}
                   <div className="d-flex align-items-center gap-3">
-                    <span className="fs-5 fw-bold text-dark">{sub.price} PLN</span>
+                    
+                   
+
                     <div>
-                      <button onClick={() => startEditing(sub)} className="btn btn-sm btn-outline-warning me-2">✏️</button>
-                      <button onClick={() => handleDelete(sub._id)} className="btn btn-sm btn-outline-danger">🗑️</button>
+                      <div className="d-flex align-items-center gap-2">
+                          <h5 className="mb-1 fw-bold">{sub.name}</h5>
+                          {sub.frequency === 'yearly' && <span className="badge bg-info text-dark" style={{fontSize: '0.65em'}}>Roczna</span>}
+                      </div>
+                      <small className="text-muted">
+                        📅 {sub.paymentDate ? new Date(sub.paymentDate).toLocaleDateString('pl-PL') : ''} 
+                        <span className="badge bg-secondary ms-2">{sub.category}</span>
+                      </small>
                     </div>
                   </div>
+
+                  {/* prawa strona: Cena i przyciski */}
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="text-end">
+                      <span className="fs-5 fw-bold text-dark">{Number(sub.price).toFixed(2)} PLN</span>
+                      <div style={{fontSize: '0.7rem'}} className="text-muted text-uppercase">
+                            {sub.frequency === 'yearly' ? '/ rok' : '/ mies'}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <button onClick={() => startEditing(sub)} className="btn btn-sm btn-outline-warning me-2" title="Edytuj">✏️</button>
+                      <button onClick={() => handleDelete(sub._id)} className="btn btn-sm btn-outline-danger" title="Usuń">🗑️</button>
+                    </div>
+                  </div>
+
                 </div>
               ))
             )}

@@ -118,7 +118,7 @@ KILLBILL-APP
 
 ## 📸 Podgląd aplikacji
 
-1. Landing Page & Logowanie
+1. Landing Page & Logowanie - 
 Strona powitalna wprowadzająca użytkownika w funkcjonalności aplikacji oraz bezpieczny system autoryzacji.
 
 <img width="1899" height="931" alt="Zrzut ekranu 2026-01-17 200951" src="https://github.com/user-attachments/assets/331ddce1-697d-4335-9a37-7e1e8caf71cb" />
@@ -128,22 +128,22 @@ Strona powitalna wprowadzająca użytkownika w funkcjonalności aplikacji oraz b
 <img width="1901" height="930" alt="Zrzut ekranu 2026-01-17 201032" src="https://github.com/user-attachments/assets/268c519d-0a92-41dc-8ec1-b63f8fe4fa93" />
 
 
-2. Dashboard (Panel Główny)
+2. Dashboard (Panel Główny) - 
 Centralne miejsce zarządzania subskrypcjami, pozwalające na szybki podgląd wszystkich aktywnych usług i ich kosztów.
 
 <img width="1916" height="936" alt="Zrzut ekranu 2026-01-17 201052" src="https://github.com/user-attachments/assets/ee49cb4b-f963-4b00-8696-d65d4d6dcb98" />
 
-4. Statystyki
+4. Statystyki - 
 Graficzna analiza wydatków w formie interaktywnych wykresów, pomagająca monitorować budżet.
 
 <img width="1900" height="938" alt="Zrzut ekranu 2026-01-17 201116" src="https://github.com/user-attachments/assets/80888613-2e81-490b-983b-f27496d1c42b" />
 
-6. Kalendarz Płatności
+6. Kalendarz Płatności - 
 Przejrzysty harmonogram, który pokazuje nadchodzące terminy płatności, abyś nigdy nie przegapił odnowienia subskrypcji.
 
 <img width="1873" height="934" alt="Zrzut ekranu 2026-01-17 201148" src="https://github.com/user-attachments/assets/1b2eeb19-1c0c-4a75-88a5-fc8f8103f54e" />
 
-8. Tryb Ciemny (Dark Mode)
+8. Tryb Ciemny (Dark Mode) - 
 Pełne wsparcie dla Dark Mode, zapewniające komfort użytkowania o każdej porze dnia.
 
 <img width="1915" height="931" alt="Zrzut ekranu 2026-01-17 201210" src="https://github.com/user-attachments/assets/231538e8-a58f-465e-b635-822d3e514f0a" />

@@ -9,8 +9,9 @@ Aplikacja typu Full-Stack (MERN) do inteligentnego zarządzania subskrypcjami i 
 2. [Funkcjonalności](#-funkcjonalności)
 3. [Technologie](#-technologie)
 4. [Instalacja i uruchomienie](#-instalacja-i-uruchomienie)
-5. [Struktura projektu](#-struktura-projektu)
-6. [Autorzy](#-autorzy)
+5. [Testy E2E (Playwright)](#-testy-e2e-playwright)
+6. [Struktura projektu](#-struktura-projektu)
+7. [Autorzy](#-autorzy)
 
 ---
 
@@ -91,6 +92,39 @@ cd frontend
 npm install
 npm start
 ```
+
+---
+
+## 🧪 Zautomatyzowane Testy End-to-End (E2E)
+
+Do weryfikacji poprawności działania kluczowych funkcji aplikacji wykorzystano nowoczesny framework **Playwright**. Przeprowadzono kompleksowe testy symulujące zachowanie prawdziwego użytkownika, co stanowi ostatnią linię obrony przed błędami, które mogłyby trafić do klienta.
+
+### Zakres testów
+Przestestowana została "Pełna ścieżka krytyczna użytkownika", która obejmuje:
+1.  **Nawigację:** Otwarcie strony głównej i przejście do formularza rejestracji.
+2.  **Rejestrację unikalnego użytkownika:** Wypełnienie danych (wykorzystanie generatora czasu w loginie w celu uniknięcia duplikatów w bazie) i utworzenie konta.
+3.  **Logowanie:** Weryfikacja poprawności danych i przejście do panelu głównego (Dashboard).
+4.  **Dodanie subskrypcji (np. Netflix):** Wypełnienie formularza, wybór kategorii i daty.
+5.  **Asercję widoczności:** Sprawdzenie, czy nowa subskrypcja faktycznie pojawiła się na liście (weryfikacja sukcesu akcji przez robota).
+
+### Cross-Browser Testing
+Testy zostały skonfigurowane w trybie sekwencyjnym (`workers=1`), aby zapewnić stabilność połączenia z bazą danych. Pomyślnie wykonano identyczny scenariusz na trzech głównych silnikach przeglądarek:
+* **Chromium** (Google Chrome, Microsoft Edge)
+* **Firefox**
+* **WebKit** (Apple Safari)
+
+---
+
+### 📸 Dowody pomyślnego wykonania testów
+
+**1. Podsumowanie z terminala pokazujące pomyślne zaliczenie całego zestawu testów przy użyciu jednego wątku roboczego (workers=1):**
+![Wynik testów w terminalu](terminal-wynik.png)
+
+**2. Widok ze środowiska UI Playwright - test "Pełna ścieżka E2E" zakończony sukcesem na wszystkich przeglądarkach:**
+![Podsumowanie testów cross-browser](podsumowanie-testow.png)
+
+**3. Szczegółowy raport HTML z przebiegu testu na Chromium (widoczne poszczególne kroki i czasy wykonania):**
+![Szczegółowy raport z Chromium](szczegolowy-raport.png)
 
 ## 📁 Struktura projektu
 

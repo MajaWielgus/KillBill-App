@@ -7,12 +7,12 @@ Aplikacja typu Full-Stack (MERN) do inteligentnego zarządzania subskrypcjami i 
 ## 📋 Spis treści
 1. [O projekcie](#-o-projekcie)
 2. [Funkcjonalności](#-funkcjonalności)
-3. [Technologie](#-technologie)
-4. [Instalacja i uruchomienie](#-instalacja-i-uruchomienie)
-5. [Testy E2E (Playwright)](#-testy-e2e-playwright)
-6. [Struktura projektu](#-struktura-projektu)
-7. [Autorzy](#-autorzy)
-
+3. [Technologie](#%EF%B8%8F-technologie)
+4. [Instalacja i uruchomienie](#%EF%B8%8F-instalacja-i-uruchomienie)
+5. [Struktura projektu](#-struktura-projektu)
+6. [Zautomatyzowane Testy End-to-End (E2E)](#-zautomatyzowane-testy-end-to-end-e2e)
+7. [Autorzy](#%E2%80%8D-autorzy)
+   
 ---
 
 ## 🎯 O projekcie
@@ -95,37 +95,6 @@ npm start
 
 ---
 
-## 🧪 Zautomatyzowane Testy End-to-End (E2E)
-
-Do weryfikacji poprawności działania kluczowych funkcji aplikacji wykorzystano nowoczesny framework **Playwright**. Przeprowadzono kompleksowe testy symulujące zachowanie prawdziwego użytkownika, co stanowi ostatnią linię obrony przed błędami, które mogłyby trafić do klienta.
-
-### Zakres testów
-Przestestowana została "Pełna ścieżka krytyczna użytkownika", która obejmuje:
-1.  **Nawigację:** Otwarcie strony głównej i przejście do formularza rejestracji.
-2.  **Rejestrację unikalnego użytkownika:** Wypełnienie danych (wykorzystanie generatora czasu w loginie w celu uniknięcia duplikatów w bazie) i utworzenie konta.
-3.  **Logowanie:** Weryfikacja poprawności danych i przejście do panelu głównego (Dashboard).
-4.  **Dodanie subskrypcji (np. Netflix):** Wypełnienie formularza, wybór kategorii i daty.
-5.  **Asercję widoczności:** Sprawdzenie, czy nowa subskrypcja faktycznie pojawiła się na liście (weryfikacja sukcesu akcji przez robota).
-
-### Cross-Browser Testing
-Testy zostały skonfigurowane w trybie sekwencyjnym (`workers=1`), aby zapewnić stabilność połączenia z bazą danych. Pomyślnie wykonano identyczny scenariusz na trzech głównych silnikach przeglądarek:
-* **Chromium** (Google Chrome, Microsoft Edge)
-* **Firefox**
-* **WebKit** (Apple Safari)
-
----
-
-### 📸 Dowody pomyślnego wykonania testów
-
-**1. Podsumowanie z terminala pokazujące pomyślne zaliczenie całego zestawu testów przy użyciu jednego wątku roboczego (workers=1):**
-![Wynik testów w terminalu](terminal-wynik.png)
-
-**2. Widok ze środowiska UI Playwright - test "Pełna ścieżka E2E" zakończony sukcesem na wszystkich przeglądarkach:**
-![Podsumowanie testów cross-browser](podsumowanie-testow.png)
-
-**3. Szczegółowy raport HTML z przebiegu testu na Chromium (widoczne poszczególne kroki i czasy wykonania):**
-![Szczegółowy raport z Chromium](szczegolowy-raport.png)
-
 ## 📁 Struktura projektu
 
 ```text
@@ -140,17 +109,16 @@ KILLBILL-APP
 │       ├── components/
 │       ├── App.js
 │       └── index.js
+├── killbill-e2e/
+│   ├── playwright-report/
+│   ├── test-results/
+│   ├── tests/
+│   ├── package.json
+│   └── playwright.config.ts
 └── README.md
 ```
 
-
-## 👩‍💻 Autorzy
-
-- Maja Wielgus 
-- Wiktoria Radzanowska 
-
-
-## 📸 Podgląd aplikacji
+### 📸 Podgląd aplikacji
 
 1. Landing Page & Logowanie - 
 Strona powitalna wprowadzająca użytkownika w funkcjonalności aplikacji oraz bezpieczny system autoryzacji.
@@ -177,7 +145,45 @@ Przejrzysty harmonogram, który pokazuje nadchodzące terminy płatności, abyś
 
 <img width="1873" height="934" alt="Zrzut ekranu 2026-01-17 201148" src="https://github.com/user-attachments/assets/1b2eeb19-1c0c-4a75-88a5-fc8f8103f54e" />
 
-5. Tryb Ciemny (Dark Mode) - 
-Pełne wsparcie dla Dark Mode, zapewniające komfort użytkowania o każdej porze dnia.
+---
 
-<img width="1915" height="931" alt="Zrzut ekranu 2026-01-17 201210" src="https://github.com/user-attachments/assets/231538e8-a58f-465e-b635-822d3e514f0a" />
+## 🧪 Zautomatyzowane Testy End-to-End (E2E)
+
+Do weryfikacji poprawności działania kluczowych funkcji aplikacji wykorzystano nowoczesny framework **Playwright**. Przeprowadzono kompleksowe testy symulujące zachowanie prawdziwego użytkownika, co stanowi ostatnią linię obrony przed błędami.
+
+### Zakres testów
+Przestestowana została "Pełna ścieżka krytyczna użytkownika", która obejmuje:
+1.  **Nawigację:** Otwarcie strony głównej i przejście do formularza rejestracji.
+2.  **Rejestrację unikalnego użytkownika:** Wypełnienie danych (wykorzystanie generatora czasu w loginie w celu uniknięcia duplikatów w bazie) i utworzenie konta.
+3.  **Logowanie:** Weryfikacja poprawności danych i przejście do panelu głównego (Dashboard).
+4.  **Dodanie subskrypcji (np. Netflix):** Wypełnienie formularza, wybór kategorii i daty.
+5.  **Asercję widoczności:** Sprawdzenie, czy nowa subskrypcja faktycznie pojawiła się na liście (weryfikacja sukcesu akcji przez robota).
+
+### Cross-Browser Testing
+Testy zostały skonfigurowane w trybie sekwencyjnym (`workers=1`), aby zapewnić stabilność połączenia z bazą danych. Pomyślnie wykonano identyczny scenariusz na trzech głównych silnikach przeglądarek:
+* **Chromium** (Google Chrome, Microsoft Edge)
+* **Firefox**
+* **WebKit** (Apple Safari)
+
+
+### 📸 Dowody pomyślnego wykonania testów
+
+**1. Podsumowanie z terminala pokazujące pomyślne zaliczenie całego zestawu testów przy użyciu jednego wątku roboczego (workers=1):**
+
+<img width="388" height="99" alt="terminal-wynik png" src="https://github.com/user-attachments/assets/d4ce846d-1c45-4c67-8ba3-5bbe2da835bb" />
+
+**2. Widok ze środowiska UI Playwright - test "Pełna ścieżka E2E" zakończony sukcesem na wszystkich przeglądarkach:**
+
+<img width="1482" height="350" alt="podsumowanie-testow png" src="https://github.com/user-attachments/assets/2bdaf04d-c721-4fc5-89d8-2e54c91bdd4a" />
+
+**3. Szczegółowy raport HTML z przebiegu testu na Chromium (widoczne poszczególne kroki i czasy wykonania):**
+
+<img width="1544" height="764" alt="szczegolowy-raport png" src="https://github.com/user-attachments/assets/d28d3063-1023-448b-9ecf-72f619f3969a" />
+
+---
+
+## 👩‍💻 Autorzy
+
+- Maja Wielgus 
+- Wiktoria Radzanowska 
+
